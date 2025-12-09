@@ -134,7 +134,7 @@ const PublicMenu: React.FC = () => {
     }
 
     return (
-        <div style={{ paddingBottom: '120px', fontFamily: 'sans-serif', backgroundColor: '#f9fafb' }}>
+        <div style={{ paddingBottom: '20px', fontFamily: 'sans-serif', backgroundColor: '#f9fafb' }}>
             
             {/* Header com Foto do Restaurante */}
             <div style={{ position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
@@ -260,28 +260,10 @@ const PublicMenu: React.FC = () => {
                                                 </p>
                                             )}
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                                             <span style={{ fontWeight: '600', color: '#10b981', fontSize: '16px' }}>
                                                 R$ {product.price.toFixed(2)}
                                             </span>
-                                            <button 
-                                                onClick={() => handleAddToCart(product)}
-                                                style={{
-                                                    backgroundColor: '#4f46e5',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    padding: '6px 12px',
-                                                    cursor: 'pointer',
-                                                    fontWeight: '600',
-                                                    fontSize: '14px',
-                                                    transition: 'background-color 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#3b39b0')}
-                                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4f46e5')}
-                                            >
-                                                + Adicionar
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -289,129 +271,6 @@ const PublicMenu: React.FC = () => {
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Bottom Bar - Carrinho */}
-            {totalItemsInCart > 0 && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '60px',
-                    left: 0,
-                    right: 0,
-                    padding: '15px',
-                    backgroundColor: 'white',
-                    borderTop: '2px solid #4f46e5',
-                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
-                    zIndex: 50
-                }}>
-                    <button 
-                        onClick={() => navigate(`/checkout/${restaurantId}`)}
-                        style={{
-                            width: '100%',
-                            backgroundColor: '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            padding: '14px',
-                            borderRadius: '8px',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#10b981')}
-                    >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <ShoppingBag size={20} />
-                            Ver Carrinho ({totalItemsInCart})
-                        </span>
-                        <span>R$ {total.toFixed(2)}</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Bottom Navigation Bar */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: 'white',
-                borderTop: '1px solid #e5e7eb',
-                display: 'flex',
-                justifyContent: 'space-around',
-                padding: '8px 0',
-                zIndex: 40,
-                boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
-            }}>
-                <button
-                    onClick={() => window.location.href = window.location.href}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '8px',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        cursor: 'pointer',
-                        color: '#4f46e5',
-                        transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#3b39b0')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#4f46e5')}
-                >
-                    <Home size={24} />
-                    <span style={{ fontSize: '11px', fontWeight: '600' }}>Home</span>
-                </button>
-
-                <button
-                    onClick={() => navigate(`/pedidos/${restaurantId}`)}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '8px',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        cursor: 'pointer',
-                        color: '#6b7280',
-                        transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#374151')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
-                >
-                    <Package size={24} />
-                    <span style={{ fontSize: '11px', fontWeight: '600' }}>Pedidos</span>
-                </button>
-
-                <button
-                    onClick={() => navigate(`/perfil/${restaurantId}`)}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '8px',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        cursor: 'pointer',
-                        color: '#6b7280',
-                        transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#374151')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
-                >
-                    <User size={24} />
-                    <span style={{ fontSize: '11px', fontWeight: '600' }}>Perfil</span>
-                </button>
             </div>
         </div>
     );
