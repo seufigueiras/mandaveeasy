@@ -7,12 +7,25 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Variáveis de Ambiente e Arquivos Temporários
+.env
+.env.local
+.env.*.local
+.env.production
 *.local
+tmp
+temp
 
-# Editor directories and files
+# Dependências
+/node_modules
+
+# Build e Produção
+/dist
+/dist-ssr
+/build
+/out
+
+# IDEs e Ferramentas
 .vscode/*
 !.vscode/extensions.json
 .idea
