@@ -4,10 +4,5 @@
       "source": "/(.*)",
       "destination": "/server.js"
     }
-  ],
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node@3.0.12"
-    }
-  }
+  ]
 }
