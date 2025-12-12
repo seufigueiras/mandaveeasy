@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "webhook": "node server.js",
+    "start": "node server.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run webhook\""
   },
   "dependencies": {
