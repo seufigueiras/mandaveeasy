@@ -26,6 +26,10 @@ export default defineConfig(({ mode }) => {
             },
         },
         plugins: [react()],
+        // 🛠️ ADIÇÃO PARA CORRIGIR O ERRO DE RESOLUÇÃO DO 'xlsx' NO VITE
+        optimizeDeps: { 
+            exclude: ['xlsx'],
+        },
         define: {
             // Variáveis de ambiente explicitamente expostas para o frontend (import.meta.env)
             // Variáveis de API/Serviços
