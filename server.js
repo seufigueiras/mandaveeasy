@@ -29,8 +29,8 @@ const STATE_ORDER_CREATED = 'ORDER_CREATED'; // 🟢 Estado de Pedido Criado
 
 // 🤖 MODELOS GEMINI (Usando v1beta - Suportam texto E áudio!)
 const GEMINI_MODELS = [
-  'gemini-2.0-flash-exp',    
-  'gemini-2.5-flash',         
+  'gemini-2.5-flash',    
+  'gemini-2.0-flash-exp',         
   'gemini-2.5-pro',          
   'gemini-2.0-flash',        
 ];
