@@ -2,12 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
-import 'dotenv/config'; // 💡 ADICIONADO para carregar o .env.local
+import 'dotenv/config'; 
+
+// 🚨 REMOVIDAS: Linhas de importação de 'path' e 'url' que causavam o erro ENOENT.
 
 const app = express();
 
 // --- CONFIGURAÇÕES DO SISTEMA --- 
-// 💡 AGORA LENDO AS VARIÁVEIS DO EASY PANEL COM FALLBACKS 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://lhhasjzlsbmhaxhvaipw.supabase.co';
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoaGFzanpsc2JtaGF4aHZhaXB3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTA3NDAxMSwiZXhwIjoyMDgwNjUwMDExfQ.60tU_BnRACKcTXjAU9tdsR-DeBug9l5SZQivVGcu160';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -23,31 +24,39 @@ const COMMAND_RESET = '#NEYREVISAO';
 const PASSWORD_RESET = 'Diney2594'; 
 const STATE_WAITING_PASS = 'WAITING_FOR_PASSWORD_NEYREVISAO';
 const STATE_IDLE = 'IDLE';
-const STATE_ORDER_CREATED = 'ORDER_CREATED'; // 🟢 Estado de Pedido Criado
+const STATE_ORDER_CREATED = 'ORDER_CREATED';
 
-// 🤖 MODELOS GEMINI (Priorizado para evitar erro 429 - Quota Excedida)
+// 🤖 MODELOS GEMINI (Corrigido para evitar erro 429 - Quota Excedida)
 const GEMINI_MODELS = [
-    'gemini-2.5-flash',     // 🟢 Priorizado
-    'gemini-2.0-flash-exp',     
-    'gemini-2.5-pro',           
-    'gemini-2.0-flash',         
+    'gemini-2.5-flash',     // 🟢 Priorizado (Maior cota disponível)
+    'gemini-2.5-pro',       // 🟢 Próximo
+    'gemini-2.0-flash',     // 🟢 Último recurso
+    // 'gemini-2.0-flash-exp', // ❌ REMOVIDO: Este modelo estava causando o erro 429.
 ];
 
 app.use(cors());
-// 🚨 CORREÇÃO: Aumentar o limite do payload para Evolution API
 app.use(express.json({ limit: '50mb' })); 
 app.use((req, res, next) => {
     res.setHeader('ngrok-skip-browser-warning', 'true');
     next();
 });
 
-// REMOVIDO: Linhas que serviam o frontend (index.html) para corrigir o erro ENOENT
-// REMOVIDO: const __filename = fileURLToPath(import.meta.url);
-// REMOVIDO: const __dirname = path.dirname(__filename);
-// REMOVIDO: app.use(express.static(path.join(__dirname, 'dist')));
+// 🚨 CORREÇÃO CRÍTICA: ROTA PRINCIPAL (/) para o sistema parar de dar "Cannot GET /"
+app.get('/', (req, res) => {
+    res.json({
+        status: 'online',
+        service: 'Mandavenovo - API do WhatsApp',
+        message: 'O backend está ativo e aguardando webhooks da Evolution API.',
+        test_routes: [
+            '/api/test',
+            '/api/webhook/status'
+        ],
+        next_step: 'Para testar o robô, envie uma mensagem no WhatsApp.'
+    });
+});
 
 // ========================================
-// 🔧 FUNÇÕES AUXILIARES
+// 🔧 FUNÇÕES AUXILIARES (Sem Alterações)
 // ========================================
 
 async function buscarCardapio() {
@@ -178,9 +187,6 @@ async function resetConversation(conversationId, phone) {
     }
 }
 
-/**
- * 🎤 BAIXAR ÁUDIO DO WHATSAPP (Evolution API)
- */
 async function baixarAudioWhatsApp(messageId) {
     try {
         console.log('🎤 Baixando áudio da Evolution API...');
@@ -227,9 +233,6 @@ async function baixarAudioWhatsApp(messageId) {
     }
 }
 
-/**
- * 🎤 TRANSCREVER ÁUDIO USANDO GEMINI 2.0/2.5 (MULTIMODAL)
- */
 async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
     try {
         console.log('🎤 Transcrevendo áudio com Gemini...');
@@ -237,12 +240,10 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
 
         let ultimoErro = null;
 
-        // 🔄 Tentar com os modelos 2.0/2.5 que suportam áudio nativamente
         for (const modelo of GEMINI_MODELS) {
             try {
                 console.log(`🧪 Tentando transcrição com modelo: ${modelo}`);
                 
-                // 🔧 USAR API v1beta com modelos 2.0/2.5
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${GEMINI_API_KEY}`;
 
                 const requestBody = {
@@ -291,7 +292,6 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     const transcricao = data.candidates[0].content.parts[0].text;
                     console.log(`✅ Áudio transcrito com sucesso usando: ${modelo}`);
-                    console.log('📝 Transcrição:', transcricao);
                     return transcricao.trim();
                 }
 
@@ -304,7 +304,6 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
             }
         }
 
-        // Se todos os modelos falharam
         console.error('❌ TODOS OS MODELOS DE ÁUDIO FALHARAM!');
         throw ultimoErro || new Error('Nenhum modelo de áudio disponível');
 
@@ -314,31 +313,24 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
     }
 }
 
-/**
- * 🤖 Gera resposta usando Gemini
- */
 async function gerarRespostaIA(mensagemCliente, telefone, config) {
     try {
         console.log('🤖 Gerando resposta com IA...');
 
         const { data: conversationData } = await supabase
             .from('whatsapp_conversations')
-            .select('id, internal_state') // 💡 NOVO: Buscamos o estado interno
+            .select('id, internal_state') 
             .eq('phone', telefone)
             .eq('restaurant_id', RESTAURANT_ID)
             .single();
 
-        // 💡 NOVO: Se o estado for ORDER_CREATED (Pedido Finalizado), resetamos a conversa.
-        // Isso impede que a mensagem de agradecimento ou OK do cliente seja processada como novo pedido.
         if (conversationData && conversationData.internal_state === STATE_ORDER_CREATED) {
             console.log('🔁 Pedido anterior finalizado. Resetando para IDLE.');
-            // Chamamos o reset no banco, mas continuamos a conversa como se fosse nova para a IA.
             await supabase
                 .from('whatsapp_conversations')
                 .update({ internal_state: STATE_IDLE })
                 .eq('id', conversationData.id);
         }
-
 
         let historicoMensagens = [];
         if (conversationData) {
@@ -446,6 +438,7 @@ ${config.bot_instructions ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${config.bot_in
 
         let ultimoErro = null;
         
+        // 🚀 Loop de Modelos: Tenta o 2.5-flash primeiro para evitar 429.
         for (const modelo of GEMINI_MODELS) {
             try {
                 console.log(`🧪 Tentando modelo: ${modelo}`);
@@ -638,7 +631,6 @@ function extrairDadosPedido(respostaIA) {
 // ROTAS DA API
 // ========================================
 
-// 🟢 CORREÇÃO CRÍTICA: Adicionado '/api/whatsapp-webhook/messages-upsert' para evitar 404
 app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webhook/messages-upsert'], async (req, res) => {
     try {
         console.log('\n📱 ====================================');
@@ -653,7 +645,6 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
             if (message && message.key && !message.key.fromMe) {
                 const phone = message.key.remoteJid.replace('@s.whatsapp.net', '');
                 
-                // 🎤 DETECTAR SE É ÁUDIO
                 let messageText = null;
                 let isAudio = false;
 
@@ -673,7 +664,6 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         
                         const transcricao = await transcreverAudio(audioBase64, mimeType);
                         
-                        // 🟢 CORREÇÃO CRÍTICA DO ÁUDIO: Variável 'transcricao' estava incorreta
                         if (transcricao) { 
                             messageText = transcricao;
                             console.log('📝 Transcrição bem-sucedida:', transcricao);
@@ -760,7 +750,6 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         });
                 }
 
-                // 🚨 LÓGICA DE MANUTENÇÃO
                 const currentInternalState = conversation.internal_state || STATE_IDLE;
 
                 if (messageText.toUpperCase().trim() === COMMAND_RESET) {
@@ -821,7 +810,6 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                     return;
                 }
 
-                // 🎤 Se for áudio e não conseguiu transcrever, informar o usuário
                 if (isAudio && (messageText.includes('[Áudio não pôde ser transcrito]') || messageText.includes('[Erro ao baixar áudio]'))) {
                     const errorMsg = 'Desculpe, não consegui entender seu áudio. Pode digitar sua mensagem ou enviar outro áudio? 😊';
                     await enviarMensagemWhatsApp(phone, errorMsg);
@@ -840,12 +828,11 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                     const pedidoCriado = await criarPedido(phone, dadosPedido);
                     
                     if (pedidoCriado) {
-                        // 🟢 AÇÃO CRÍTICA PARA EVITAR LOOP: Mudar o estado e limpar unread_count
                         await supabase
                             .from('whatsapp_conversations')
                             .update({ 
-                                internal_state: STATE_ORDER_CREATED, // Define que o pedido foi finalizado
-                                unread_count: 0 // Limpa o badge de notificação
+                                internal_state: STATE_ORDER_CREATED, 
+                                unread_count: 0 
                             })
                             .eq('id', conversation.id);
                         
@@ -910,8 +897,6 @@ app.get('/api/webhook/status', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-// REMOVIDO: Linha de fallback do frontend
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
