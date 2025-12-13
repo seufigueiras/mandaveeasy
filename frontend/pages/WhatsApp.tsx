@@ -7,7 +7,7 @@ import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { MessageCircle, Send, Pause, Play, Power, Bot, User, Clock } from 'lucide-react';
-import { sendWhatsAppMessage } from '../services/evolutionService';
+import { sendWhatsAppMessage } from '../services/whatsappApiService';
 
 interface Conversation {
     id: string;
