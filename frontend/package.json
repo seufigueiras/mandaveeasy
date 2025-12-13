@@ -14,6 +14,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "2.39.7",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.13.2",
     "body-parser": "^2.2.1",
     "cors": "^2.8.5",
@@ -22,6 +23,7 @@
     "express": "^5.2.1",
     "lucide-react": "^0.556.0",
     "node-fetch": "^3.3.2",
+    "qrcode-terminal": "^0.12.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-hot-toast": "2.4.1",

@@ -4,8 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 import 'dotenv/config'; 
 
-// 🚨 REMOVIDAS: Linhas de importação de 'path' e 'url' que causavam o erro ENOENT.
-
 const app = express();
 
 // --- CONFIGURAÇÕES DO SISTEMA --- 
@@ -16,22 +14,20 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://cantinhodabere-evolution-api.3xdxtv.easypanel.host';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || '429683C4C977415CAAFCCE10F7D57E11';
 const INSTANCE_NAME = process.env.INSTANCE_NAME || 'testa';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyC7yhHU_kZvYIODWYnVpu83BeYUtKXgW3c'; 
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBU_-SIdVKXPuRgrW65zBsHZ-MHVYCykb8'; 
 const RESTAURANT_ID = process.env.RESTAURANT_ID || '00000000-0000-0000-0000-000000000001';
 
-// 🚨 CONSTANTES DE MANUTENÇÃO E ESTADOS
 const COMMAND_RESET = '#NEYREVISAO'; 
 const PASSWORD_RESET = 'Diney2594'; 
 const STATE_WAITING_PASS = 'WAITING_FOR_PASSWORD_NEYREVISAO';
 const STATE_IDLE = 'IDLE';
 const STATE_ORDER_CREATED = 'ORDER_CREATED';
 
-// 🤖 MODELOS GEMINI (Corrigido para evitar erro 429 - Quota Excedida)
 const GEMINI_MODELS = [
-    'gemini-2.5-flash',     // 🟢 Priorizado (Maior cota disponível)
-    'gemini-2.5-pro',       // 🟢 Próximo
-    'gemini-2.0-flash',     // 🟢 Último recurso
-    // 'gemini-2.0-flash-exp', // ❌ REMOVIDO: Este modelo estava causando o erro 429.
+    'gemini-2.5-flash',
+    'gemini-2.5-pro',
+    'gemini-2.0-flash',
 ];
 
 app.use(cors());
@@ -41,23 +37,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// 🚨 CORREÇÃO CRÍTICA: ROTA PRINCIPAL (/) para o sistema parar de dar "Cannot GET /"
 app.get('/', (req, res) => {
     res.json({
         status: 'online',
         service: 'Mandavenovo - API do WhatsApp',
-        message: 'O backend está ativo e aguardando webhooks da Evolution API.',
-        test_routes: [
-            '/api/test',
-            '/api/webhook/status'
-        ],
-        next_step: 'Para testar o robô, envie uma mensagem no WhatsApp.'
+        message: 'O backend está ativo e aguardando webhooks da Evolution API.'
     });
 });
-
-// ========================================
-// 🔧 FUNÇÕES AUXILIARES (Sem Alterações)
-// ========================================
 
 async function buscarCardapio() {
     try {
@@ -87,7 +73,7 @@ async function buscarCardapio() {
             
             categorias[categoria].forEach(p => {
                 cardapioVisivel += `- **${p.name}** - R$ ${p.price.toFixed(2)}\n`;
-                if (p.description) cardapioVisivel += `  _${p.description}_\n`;
+                if (p.description) cardapioVisivel += `  _${p.description}_\n`;
                 
                 cardapioInterno += `- Nome: ${p.name} | ID: ${p.id} | Preço: ${p.price.toFixed(2)}\n`;
             });
@@ -111,10 +97,6 @@ async function buscarConfiguracoes() {
 
         if (error) {
             console.error('❌ Erro Supabase:', error.message);
-            return null;
-        }
-
-        if (!restaurant) {
             return null;
         }
 
@@ -190,8 +172,7 @@ async function resetConversation(conversationId, phone) {
 async function baixarAudioWhatsApp(messageId) {
     try {
         console.log('🎤 Baixando áudio da Evolution API...');
-        console.log('🆔 Message ID:', messageId);
-
+        
         const response = await fetch(
             `${EVOLUTION_API_URL}/chat/getBase64FromMediaMessage/${INSTANCE_NAME}`,
             {
@@ -201,11 +182,7 @@ async function baixarAudioWhatsApp(messageId) {
                     'apikey': EVOLUTION_API_KEY,
                 },
                 body: JSON.stringify({
-                    message: {
-                        key: {
-                            id: messageId
-                        }
-                    },
+                    message: { key: { id: messageId } },
                     convertToMp4: false
                 }),
             }
@@ -224,9 +201,7 @@ async function baixarAudioWhatsApp(messageId) {
             return data.base64;
         }
 
-        console.error('❌ Resposta sem base64:', data);
         return null;
-
     } catch (error) {
         console.error('❌ Erro ao baixar áudio:', error);
         return null;
@@ -236,7 +211,6 @@ async function baixarAudioWhatsApp(messageId) {
 async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
     try {
         console.log('🎤 Transcrevendo áudio com Gemini...');
-        console.log('🎵 Tipo MIME original:', mimeType);
 
         let ultimoErro = null;
 
@@ -257,7 +231,7 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
                                     }
                                 },
                                 {
-                                    text: 'Transcreva este áudio em português brasileiro. Retorne APENAS o texto falado, sem comentários, análises ou observações adicionais.'
+                                    text: 'Transcreva este áudio em português brasileiro. Retorne APENAS o texto falado, sem comentários.'
                                 }
                             ]
                         }
@@ -282,7 +256,7 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
                         ultimoErro = new Error(`Quota excedida: ${modelo}`);
                         continue;
                     }
-                    
+                                
                     ultimoErro = new Error(`HTTP ${response.status}: ${errorText}`);
                     continue;
                 }
@@ -362,16 +336,23 @@ async function gerarRespostaIA(mensagemCliente, telefone, config) {
             ? config.opening_hours.map(h => `${h.day}: ${h.is_open ? `${h.open_time} às ${h.close_time}` : 'FECHADO'}`).join('\n')
             : 'Não configurado';
             
-        const systemInstructionText = `Você é ${config.bot_name || 'a Assistente Virtual'} do restaurante ${config.name}. Seu papel é atender o cliente, conduzir a venda e processar o pedido.
+        const nomeRestaurante = config.name || 'nossa lanchonete';
+        const enderecoRestaurante = config.address || 'Não configurado';
+        const telefoneRestaurante = config.phone || 'Não configurado';
+        const taxaEntrega = (config.delivery_fee || 0).toFixed(2);
+        const tempoEntrega = config.delivery_time || '30-40 minutos';
+        const instrucoesAdicionais = config.bot_instructions || '';
+        
+        const systemInstructionText = `Você é ${config.bot_name || 'a Assistente Virtual'} do restaurante ${nomeRestaurante}. Seu papel é atender o cliente, conduzir a venda e processar o pedido.
 
 📅 DATA E HORA ATUAL: ${dataAtual}
 
 ## ℹ️ INFORMAÇÕES DO RESTAURANTE:
-- Nome: ${config.name}
-- Endereço: ${config.address || 'Não configurado'}
-- Telefone: ${config.phone || 'Não configurado'}
-- Taxa de entrega: R$ ${(config.delivery_fee || 0).toFixed(2)}
-- Tempo médio de entrega: ${config.delivery_time || '30-40 minutos'}
+- Nome: ${nomeRestaurante}
+- Endereço: ${enderecoRestaurante}
+- Telefone: ${telefoneRestaurante}
+- Taxa de entrega: R$ ${taxaEntrega}
+- Tempo médio de entrega: ${tempoEntrega}
 
 ${cardapioVisivel}
 
@@ -380,43 +361,78 @@ ${cardapioInterno}
 ## 🕐 HORÁRIO DE FUNCIONAMENTO:
 ${horarioTexto}
 
-## 🎯 SUAS RESPONSABILIDADES:
-1. 🛑 **NOME CRÍTICO (PRIORIDADE MÁXIMA)**: O nome do restaurante é **${config.name}**. **IGNORE QUALQUER OUTRO NOME DE RESTAURANTE**. Você deve se apresentar e se referir APENAS como ${config.name}.
-2. 🛑 **FLUXO DE CONVERSA (PRIORIDADE MÁXIMA)**:
-    * **Saudação Única**: Use a saudação completa ("Olá! Bem-vindo(a) ao ${config.name}!") SOMENTE se a conversa for iniciada (primeira mensagem do cliente).
-    * **Mantenha Contexto**: NUNCA perca o contexto, NUNCA repita a saudação e NUNCA repita perguntas que já foram respondidas. Se o cliente responder com SIM/OK, continue o fluxo da venda.
-    * **Resposta Direta**: Responda diretamente às informações do cliente para manter o fluxo de venda ativo.
-3. 🛑 **CONTEXTO CURTO (CRÍTICO)**: Quando o cliente responder apenas "Sim" ou "Não" ou frases curtas de negação (ex: "só isso", "não quero mais nada"), **VOCÊ DEVE ASSOCIAR ESSA RESPOSTA APENAS À SUA ÚLTIMA PERGUNTA**.
-4. 🛑 **TRATAMENTO DE NEGAÇÃO (REFORÇO)**: NUNCA, em hipótese alguma, interprete uma negativa à pergunta de observação ("Não" para "Quer observação?") como um cancelamento ou negação do item ou pedido em andamento. O pedido só é cancelado se o cliente usar a palavra 'cancelar'.
-5. ✅ **Atendimento e Venda**: Seja sempre amigável, educado, e conduza a venda.
-6. ✅ **Consultar cardápio**: Mostre o cardápio visível ao cliente (sem IDs). Use o "MAPA DE PRODUTOS" APENAS INTERNAMENTE para obter o ID e o preço correto ao montar o JSON de finalização.
-7. ✅ **Anotar pedido**: Pergunte quantidade e observações.
-8. ✅ **Coletar dados**: Nome, Endereço completo, Forma de Pagamento.
-9. ✅ **Calcular total**: Somar itens + taxa de entrega de R$ ${(config.delivery_fee || 0).toFixed(2)}.
-10. ✅ **Confirmar pedido**: Mostrar resumo completo antes de finalizar.
+## 🎯 SUAS RESPONSABILIDADES (LEIA COM ATENÇÃO):
 
-## ⚠️ IMPORTANTE - FORMATO DE FINALIZAÇÃO:
-Quando o cliente CONFIRMAR O PEDIDO COMPLETO, responda em duas partes (Texto + JSON).
-O JSON deve ser estritamente assim:
-\`\`\`json
-{
-    "action": "create_order",
-    "data": {
-        "customer_name": "Nome",
-        "customer_phone": "${telefone}",
-        "delivery_address": "Endereço",
-        "payment_method": "pix",
-        "items": [
-            { "product_id": "id", "name": "Produto", "quantity": 1, "price": 10.00, "notes": "" }
-        ],
-        "notes": ""
-    }
-}
-\`\`\`
+1. **NOME DO RESTAURANTE**: O nome é **${nomeRestaurante}**. Você deve se apresentar e se referir APENAS a este nome.
 
-${config.bot_instructions ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${config.bot_instructions}\n` : ''}
+2. **FLUXO DE CONVERSA - CRÍTICO**:
+   - Saudação APENAS na primeira mensagem
+   - NUNCA repita perguntas já respondidas
+   - Mantenha o contexto da conversa sempre
 
-🗣️ Responda sempre em português brasileiro!`;
+3. **FINALIZAÇÃO DE PEDIDO - REGRA MAIS IMPORTANTE**:
+   🚨 ATENÇÃO MÁXIMA AQUI:
+   - Quando você mostrar o resumo do pedido com todos os dados (itens, endereço, nome, pagamento, total)
+   - E perguntar "Está tudo correto?" ou "Confirma o pedido?"
+   - Se o cliente responder: "SIM", "OK", "CONFIRMO", "ISSO", "CORRETO", "PODE FAZER", ou qualquer variação afirmativa
+   - Você DEVE IMEDIATAMENTE FINALIZAR O PEDIDO gerando o JSON
+   - NÃO pergunte novamente
+   - NÃO repita o resumo
+   - NÃO peça mais confirmações
+   - FINALIZE IMEDIATAMENTE COM O JSON
+
+4. **TRATAMENTO DE CONTEXTO CURTO**:
+   - "Sim" ou "Não" se refere APENAS à sua última pergunta
+   - Se perguntou "Quer observação?" e cliente disse "Não", continue o pedido normalmente
+   - "Não" em observação NÃO cancela o pedido
+
+5. **FLUXO DE VENDA**:
+   - Seja amigável e educado
+   - Mostre o cardápio (sem IDs)
+   - Anote quantidade e observações
+   - Colete: Nome, Endereço completo, Forma de Pagamento
+   - Calcule o total (itens + taxa de R$ ${taxaEntrega})
+   - Mostre o resumo APENAS UMA VEZ
+   - Quando cliente confirmar, FINALIZE IMEDIATAMENTE
+
+6. **FORMATO DE FINALIZAÇÃO**:
+   Quando o cliente confirmar o pedido, responda assim:
+
+   Excelente! Seu pedido foi confirmado com sucesso! 🎉
+
+   Pedido #[NUMERO_DO_PEDIDO]
+
+   Resumo:
+   - Itens: [liste os itens]
+   - Total: R$ [valor]
+   - Endereço: [endereço]
+   - Pagamento: [forma]
+
+   Seu pedido será entregue em aproximadamente ${tempoEntrega}.
+   Obrigado pela preferência! 😊
+
+   \`\`\`json
+   {
+       "action": "create_order",
+       "data": {
+           "customer_name": "Nome do Cliente",
+           "customer_phone": "${telefone}",
+           "delivery_address": "Endereço Completo",
+           "payment_method": "pix",
+           "items": [
+               { "product_id": "id-do-produto", "name": "Nome Produto", "quantity": 1, "price": 10.00, "notes": "" }
+           ],
+           "notes": "Observações gerais do pedido"
+       }
+   }
+   \`\`\`
+
+${instrucoesAdicionais ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${instrucoesAdicionais}\n` : ''}
+
+🗣️ Responda sempre em português brasileiro!
+
+⚠️ LEMBRE-SE: Quando o cliente confirmar o pedido após ver o resumo, FINALIZE IMEDIATAMENTE! Não pergunte novamente!`;
+
 
         const requestBody = {
             systemInstruction: {
@@ -438,7 +454,6 @@ ${config.bot_instructions ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${config.bot_in
 
         let ultimoErro = null;
         
-        // 🚀 Loop de Modelos: Tenta o 2.5-flash primeiro para evitar 429.
         for (const modelo of GEMINI_MODELS) {
             try {
                 console.log(`🧪 Tentando modelo: ${modelo}`);
@@ -468,6 +483,8 @@ ${config.bot_instructions ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${config.bot_in
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     const resposta = data.candidates[0].content.parts[0].text;
                     console.log(`✅ Resposta gerada com sucesso usando: ${modelo}`);
+                    console.log(`📢 CONTEÚDO BRUTO DA RESPOSTA DA IA:\n--- START ---\n${resposta}\n--- END ---`);
+                    
                     return resposta;
                 }
                 throw new Error('Resposta inválida do Gemini');
@@ -488,13 +505,11 @@ ${config.bot_instructions ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${config.bot_in
     }
 }
 
-async function enviarMensagemWhatsApp(telefone, mensagem) {
+async function enviarMensagemWhatsApp(jidCompleto, mensagem) {
     try {
         console.log('📤 Enviando mensagem via Evolution...');
-        const telefoneFormatado = telefone.includes('@s.whatsapp.net')
-            ? telefone
-            : `${telefone.replace(/\D/g, '')}@s.whatsapp.net`;
-
+        console.log(`📞 JID de envio: ${jidCompleto}`);
+        
         const response = await fetch(`${EVOLUTION_API_URL}/message/sendText/${INSTANCE_NAME}`, {
             method: 'POST',
             headers: {
@@ -502,12 +517,14 @@ async function enviarMensagemWhatsApp(telefone, mensagem) {
                 'apikey': EVOLUTION_API_KEY,
             },
             body: JSON.stringify({
-                number: telefoneFormatado,
+                number: jidCompleto, 
                 text: mensagem,
             }),
         });
 
         if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('❌ Resposta de erro da Evolution:', errorBody);
             throw new Error(`Erro Evolution: ${response.status}`);
         }
 
@@ -516,6 +533,30 @@ async function enviarMensagemWhatsApp(telefone, mensagem) {
     } catch (error) {
         console.error('❌ Erro ao enviar mensagem:', error);
         return false;
+    }
+}
+
+async function notificarNovoPedido(pedidoId, dadosPedido) {
+    try {
+        console.log('🔔 Enviando notificação de novo pedido...');
+        
+        await supabase
+            .from('notifications')
+            .insert({
+                restaurant_id: RESTAURANT_ID,
+                type: 'new_order',
+                title: 'Novo Pedido Recebido!',
+                message: `Pedido #${pedidoId} - ${dadosPedido.customer_name} - R$ ${dadosPedido.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}`,
+                order_id: pedidoId,
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+        
+        console.log('✅ Notificação criada com sucesso!');
+        return true;
+    } catch (error) {
+        console.error('⚠️ Erro ao criar notificação (tabela pode não existir):', error.message);
+        return true;
     }
 }
 
@@ -585,8 +626,10 @@ async function criarPedido(telefone, dadosPedido) {
         }
 
         console.log('✅ Pedido criado com sucesso:', order.id);
-        return true;
-
+        
+        await notificarNovoPedido(order.id, dadosPedido);
+        
+        return order.id;
     } catch (error) {
         console.error('❌ Erro ao criar pedido:', error);
         return false;
@@ -627,10 +670,6 @@ function extrairDadosPedido(respostaIA) {
     }
 }
 
-// ========================================
-// ROTAS DA API
-// ========================================
-
 app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webhook/messages-upsert'], async (req, res) => {
     try {
         console.log('\n📱 ====================================');
@@ -643,25 +682,46 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
             const message = data;
 
             if (message && message.key && !message.key.fromMe) {
-                const phone = message.key.remoteJid.replace('@s.whatsapp.net', '');
                 
+                let remoteJid = message.key.remoteJid;
+                let phone;
+                let jidParaEnvio = remoteJid;
+
+                if (remoteJid.endsWith('@g.us')) {
+                    console.log('🤖 Mensagem de grupo ignorada.');
+                    return res.status(200).json({ success: true, message: 'Ignored group message' });
+                }
+
+                phone = remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '').trim();
+
+                if (remoteJid.endsWith('@lid')) {
+                    console.log(`⚠️ LID detectado. JID original para envio: ${jidParaEnvio}`);
+                    const senderJid = message.key.sender;
+                    if (senderJid && senderJid.endsWith('@s.whatsapp.net')) {
+                        phone = senderJid.replace('@s.whatsapp.net', '').trim();
+                        console.log(`✅ JID real encontrado em 'sender'. Usando ${phone} para o Supabase.`);
+                    }
+                } else {
+                    jidParaEnvio = `${phone}@s.whatsapp.net`;
+                }
+                
+                if (!phone || phone.length < 10) {
+                    console.error('❌ Número de telefone inválido ou ausente após tratamento:', phone);
+                    return res.status(200).json({ success: true, message: 'Invalid phone number' });
+                }
+
                 let messageText = null;
-                let isAudio = false;
 
                 const audioMessage = message.message?.audioMessage || 
                                      message.message?.ptt || 
                                      message.audioMessage;
 
                 if (audioMessage) {
-                    isAudio = true;
                     console.log('🎤 ÁUDIO DETECTADO!');
-                    
                     const audioBase64 = await baixarAudioWhatsApp(message.key.id);
                     
                     if (audioBase64) {
                         const mimeType = audioMessage.mimetype || 'audio/ogg; codecs=opus';
-                        console.log('🎵 MIME Type detectado:', mimeType);
-                        
                         const transcricao = await transcreverAudio(audioBase64, mimeType);
                         
                         if (transcricao) { 
@@ -669,11 +729,9 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                             console.log('📝 Transcrição bem-sucedida:', transcricao);
                         } else {
                             messageText = '[Áudio não pôde ser transcrito]';
-                            console.error('❌ Falha na transcrição');
                         }
                     } else {
                         messageText = '[Erro ao baixar áudio]';
-                        console.error('❌ Falha ao baixar áudio');
                     }
                 } else {
                     messageText = message.message?.conversation ||
@@ -690,20 +748,14 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                     res.status(200).json({ success: false, error: 'Configurações não encontradas' });
                     
                     const fallbackError = 'Olá! Recebemos sua mensagem, mas nosso sistema de pedidos está temporariamente fora do ar. Por favor, tente novamente em alguns minutos!';
-                    await enviarMensagemWhatsApp(phone, fallbackError);
-                    return;
-                }
-
-                if (!config.bot_is_active) {
-                    console.log('🤖 Bot desativado');
-                    res.status(200).json({ success: true, message: 'Bot desativado' });
+                    await enviarMensagemWhatsApp(jidParaEnvio, fallbackError); 
                     return;
                 }
 
                 let { data: conversation } = await supabase
                     .from('whatsapp_conversations')
                     .select('*')
-                    .eq('phone', phone)
+                    .eq('phone', phone) 
                     .eq('restaurant_id', RESTAURANT_ID)
                     .single();
 
@@ -759,7 +811,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         .eq('id', conversation.id);
                     
                     const responseText = "🤖 **[Modo Manutenção]** Confirme sua identidade para reiniciar. Por favor, digite a senha de acesso:";
-                    await enviarMensagemWhatsApp(phone, responseText);
+                    await enviarMensagemWhatsApp(jidParaEnvio, responseText); 
                     await logBotMessage(conversation.id, phone, responseText);
                     
                     console.log(`🛠️ Entrou no modo ${COMMAND_RESET}. Aguardando senha.`);
@@ -771,7 +823,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         await resetConversation(conversation.id, phone);
                         
                         const responseText = "✅ **[Modo Manutenção]** Acesso concedido. A conversa foi reiniciada com sucesso. A IA começará do zero na próxima mensagem.";
-                        await enviarMensagemWhatsApp(phone, responseText);
+                        await enviarMensagemWhatsApp(jidParaEnvio, responseText); 
                         await logBotMessage(conversation.id, phone, responseText);
                         
                         console.log(`✅ Senha correta. Conversa de ${phone} reiniciada.`);
@@ -783,7 +835,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                             .eq('id', conversation.id);
 
                         const responseText = "❌ **[Modo Manutenção]** Senha incorreta. Acesso negado. O bot foi retomado normalmente.";
-                        await enviarMensagemWhatsApp(phone, responseText);
+                        await enviarMensagemWhatsApp(jidParaEnvio, responseText); 
                         await logBotMessage(conversation.id, phone, responseText);
                         
                         console.log(`❌ Senha incorreta. Retornando ao modo IDLE.`);
@@ -803,102 +855,74 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         .map(h => `${h.day}: ${h.open_time} às ${h.close_time}`)
                         .join('\n');
                     const mensagemFechado = `Olá! 👋\n\nObrigado por entrar em contato com ${config.name}!\n\n🕐 No momento estamos fechados.\n\nNosso horário de funcionamento:\n${horarioTexto}\n\nVolte nesse horário que ficaremos felizes em atendê-lo! 😊`;
-                    await enviarMensagemWhatsApp(phone, mensagemFechado);
+                    await enviarMensagemWhatsApp(jidParaEnvio, mensagemFechado); 
                     await logBotMessage(conversation.id, phone, mensagemFechado); 
-                    console.log('🔒 Mensagem de "fechado" enviada');
-                    res.status(200).json({ success: true });
-                    return;
+                    return res.status(200).json({ success: true, message: 'Fora do horário de funcionamento' });
                 }
 
-                if (isAudio && (messageText.includes('[Áudio não pôde ser transcrito]') || messageText.includes('[Erro ao baixar áudio]'))) {
-                    const errorMsg = 'Desculpe, não consegui entender seu áudio. Pode digitar sua mensagem ou enviar outro áudio? 😊';
-                    await enviarMensagemWhatsApp(phone, errorMsg);
-                    await logBotMessage(conversation.id, phone, errorMsg);
-                    res.status(200).json({ success: true });
-                    return;
-                }
+                let respostaIA = await gerarRespostaIA(messageText, phone, config);
 
-                const respostaIA = await gerarRespostaIA(messageText, phone, config);
-                const dadosPedido = extrairDadosPedido(respostaIA);
-                let respostaLimpa = respostaIA;
+                if (respostaIA) {
+                    const dadosPedido = extrairDadosPedido(respostaIA);
+                    let textoResposta = respostaIA.replace(/```json[\s\S]*?```/, '').trim(); 
+                    let pedidoCriado = false;
 
-                if (dadosPedido) {
-                    console.log('📦 Pedido detectado! Criando no sistema...');
-                    
-                    const pedidoCriado = await criarPedido(phone, dadosPedido);
-                    
-                    if (pedidoCriado) {
-                        await supabase
-                            .from('whatsapp_conversations')
-                            .update({ 
-                                internal_state: STATE_ORDER_CREATED, 
-                                unread_count: 0 
-                            })
-                            .eq('id', conversation.id);
-                        
-                        console.log('✅ Estado da conversa atualizado para ORDER_CREATED.');
+                    if (dadosPedido) {
+                        const pedidoId = await criarPedido(phone, dadosPedido);
+
+                        if (pedidoId) {
+                            pedidoCriado = true;
+                            console.log(`🔄 Substituindo [NUMERO_DO_PEDIDO] por ${pedidoId}`);
+                            
+                            textoResposta = textoResposta.replace(/\[NUMERO_DO_PEDIDO\]/g, `${pedidoId}`);
+                            
+                            console.log('\n🎊 ================================');
+                            console.log(`🎉 PEDIDO #${pedidoId} CONFIRMADO!`);
+                            console.log(`📱 Cliente: ${dadosPedido.customer_name} (${phone})`);
+                            console.log(`📍 Endereço: ${dadosPedido.delivery_address}`);
+                            console.log(`💰 Valor Total: R$ ${dadosPedido.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}`);
+                            console.log('🎊 ================================\n');
+                        } else {
+                            console.error('❌ Falha ao criar pedido no banco. Mantendo mensagem original da IA.');
+                            textoResposta = textoResposta.replace(/\[NUMERO_DO_PEDIDO\]/g, 'em processamento');
+                        }
+
+                        await enviarMensagemWhatsApp(jidParaEnvio, textoResposta); 
+                        await logBotMessage(conversation.id, phone, textoResposta);
+
+                        if (pedidoCriado) {
+                            await supabase
+                                .from('whatsapp_conversations')
+                                .update({ internal_state: STATE_ORDER_CREATED })
+                                .eq('id', conversation.id);
+                        }
+                    } else {
+                        await enviarMensagemWhatsApp(jidParaEnvio, textoResposta); 
+                        await logBotMessage(conversation.id, phone, textoResposta);
                     }
-                    
-                    respostaLimpa = respostaIA.replace(/```json[\s\S]*?```/g, '').trim();
                 }
 
-                if (respostaLimpa) {
-                    await enviarMensagemWhatsApp(phone, respostaLimpa);
-                    await supabase
-                        .from('whatsapp_messages')
-                        .insert({
-                            conversation_id: conversation.id,
-                            phone: phone,
-                            message_text: respostaLimpa,
-                            is_from_me: true,
-                        });
-                    await supabase
-                        .from('whatsapp_conversations')
-                        .update({
-                            last_message: respostaLimpa,
-                            last_message_at: new Date().toISOString(),
-                        })
-                        .eq('id', conversation.id);
-                } else {
-                    console.log('🤖 Resposta da IA era apenas JSON.');
-                }
-
-                console.log('✅ ====================================\n');
+                res.status(200).json({ success: true, message: 'Message processed' });
+                
+            } else {
+                res.status(200).json({ success: true, message: 'Ignored message' });
             }
+        } else if (event === 'connection.update') {
+            console.log(`📡 Status da Evolution: ${data.state}`);
+            res.status(200).json({ success: true, message: 'Status update received' });
+        } else {
+            res.status(200).json({ success: true, message: 'Ignored event' });
         }
-
-        res.status(200).json({ success: true });
     } catch (error) {
-        console.error('❌ Erro no webhook:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ Erro inesperado no webhook:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
 
-app.get('/api/test', (req, res) => {
-    res.json({
-        status: 'online',
-        timestamp: new Date().toISOString(),
-        gemini: GEMINI_API_KEY ? '✅ Configurado' : '❌ Não configurado',
-        modelos: GEMINI_MODELS,
-        suporteAudio: '✅ Modelos 2.0/2.5 suportam áudio nativamente'
-    });
-});
-
-app.get('/api/webhook/status', async (req, res) => {
-    try {
-        const response = await fetch(`${EVOLUTION_API_URL}/webhook/find/${INSTANCE_NAME}`, {
-            headers: {
-                'apikey': EVOLUTION_API_KEY,
-            },
-        });
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
-    console.log(`Backend Mandavenovo rodando na porta ${PORT}`);
+app.listen(3002, () => {
+    console.log('🚀 ===================================');
+    console.log('🤖 Backend Mandavenovo ONLINE!');
+    console.log('🌐 Porta: 3002');
+    console.log('📱 Aguardando webhooks da Evolution API');
+    console.log('🚀 ===================================\n');
 });

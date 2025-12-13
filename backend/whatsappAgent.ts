@@ -1,6 +1,6 @@
 // services/whatsappAgent.ts
 
-import { supabase } from './supabaseClient.js';
+import { supabase } from '../frontend/services/supabaseClient.js';
 import { sendMessageToGemini, formatConversationHistory, extractOrderData } from './geminiService.js';
 import { sendWhatsAppMessage } from './evolutionService.js';
 import fetch from 'node-fetch';

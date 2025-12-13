@@ -7,6 +7,9 @@ import react from '@vitejs/plugin-react';
 // 🟢 URL DA EVOLUTION API PARA O PROXY
 const EVOLUTION_TARGET = 'https://cantinhodabere-evolution-api.3xdxtv.easypanel.host'; 
 
+// 🟢 URL DO SEU BACKEND LOCAL (Porta 3002) - NOVO ALVO DE PROXY
+const BACKEND_TARGET = 'http://localhost:3002'; // Seu servidor.js
+
 export default defineConfig(({ mode }) => {
     // Carrega todas as variáveis de ambiente (incluindo aquelas sem o prefixo VITE_)
     const env = loadEnv(mode, '.', '');
@@ -17,11 +20,19 @@ export default defineConfig(({ mode }) => {
             host: '0.0.0.0',
             // 🟢 CONFIGURAÇÃO DE PROXY PARA EVITAR CORS (Apenas para Dev)
             proxy: {
+                // PROXY PARA A EVOLUTION API (O QUE JÁ EXISTIA)
                 '/evolution-api': {
                     target: EVOLUTION_TARGET,
                     changeOrigin: true, 
                     secure: false, 
                     rewrite: (path) => path.replace(/^\/evolution-api/, ''), 
+                },
+                // 🚀 NOVO PROXY PARA O SEU BACKEND (server.js na porta 3002)
+                '/api': {
+                    target: BACKEND_TARGET, // Redireciona para http://localhost:3002
+                    changeOrigin: true, 
+                    secure: false,
+                    // Não precisa de rewrite, pois suas rotas de backend já começam com /api (ex: /api/test)
                 },
             },
         },

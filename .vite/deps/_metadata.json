@@ -1,0 +1,82 @@
+{
+  "hash": "20c535cb",
+  "configHash": "8ec7a866",
+  "lockfileHash": "684a57cc",
+  "browserHash": "9c27a068",
+  "optimized": {
+    "@supabase/supabase-js": {
+      "src": "../../node_modules/@supabase/supabase-js/dist/module/index.js",
+      "file": "@supabase_supabase-js.js",
+      "fileHash": "02a2f830",
+      "needsInterop": false
+    },
+    "date-fns": {
+      "src": "../../node_modules/date-fns/index.mjs",
+      "file": "date-fns.js",
+      "fileHash": "1ae08b51",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "382a5d0c",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d341e707",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "c9273b11",
+      "needsInterop": true
+    },
+    "react-hot-toast": {
+      "src": "../../node_modules/react-hot-toast/dist/index.mjs",
+      "file": "react-hot-toast.js",
+      "fileHash": "4ae0ea98",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "84bbb742",
+      "needsInterop": false
+    },
+    "recharts": {
+      "src": "../../node_modules/recharts/es6/index.js",
+      "file": "recharts.js",
+      "fileHash": "aff8e872",
+      "needsInterop": false
+    },
+    "xlsx": {
+      "src": "../../node_modules/xlsx/xlsx.mjs",
+      "file": "xlsx.js",
+      "fileHash": "28513b81",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "browser-KANTKZQ3": {
+      "file": "browser-KANTKZQ3.js"
+    },
+    "browser-SD7WMD5Y": {
+      "file": "browser-SD7WMD5Y.js"
+    },
+    "chunk-XCDHS5NV": {
+      "file": "chunk-XCDHS5NV.js"
+    },
+    "chunk-3EA7UPNO": {
+      "file": "chunk-3EA7UPNO.js"
+    },
+    "chunk-7JEA3LLI": {
+      "file": "chunk-7JEA3LLI.js"
+    },
+    "chunk-DC5AMYBS": {
+      "file": "chunk-DC5AMYBS.js"
+    }
+  }
+}
