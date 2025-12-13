@@ -1,3 +1,5 @@
+# Ainda na pasta frontend, execute:
+@'
 node_modules
 npm-debug.log
 .git
@@ -9,3 +11,4 @@ dist
 .DS_Store
 *.log
 .vite
+'@ | Out-File -FilePath .dockerignore -Encoding UTF8
