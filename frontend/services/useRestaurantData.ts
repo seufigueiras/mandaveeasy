@@ -1,7 +1,7 @@
 // frontend/hooks/useRestaurantData.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { supabase } from '../services/supabaseClient';
+import { supabase } from './supabaseClient';
 
 const initialOpeningHours: any[] = [
     { day: 'Segunda', is_open: true, open_time: '18:00', close_time: '23:00' },

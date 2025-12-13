@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, SetStateAction } from 'react';
 import toast from 'react-hot-toast';
-import { supabase } from '../services/supabaseClient'; 
+import { supabase } from './supabaseClient'; 
 import { 
     generateQrCodeApi, 
     disconnectInstanceApi, 
     checkStatusApi 
-} from '../services/whatsappApiService'; // IMPORTAÇÃO CORRIGIDA
+} from './whatsappApiService'; // IMPORTAÇÃO CORRIGIDA
 
 import { Wifi, WifiOff, RefreshCw, Power } from 'lucide-react';
 
