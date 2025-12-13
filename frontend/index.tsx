@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from '../App';
-import './styles/print.css'; // ⬅️ IMPORTAÇÃO CORRIGIDA
+// ⚠️ LINHA CORRIGIDA AQUI: Usando './App' porque index.tsx e App.tsx estão na mesma pasta.
+import App from './App';
+import './styles/print.css'; 
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
