@@ -9,7 +9,9 @@ const app = express();
 // --- CONFIGURAÇÕES DO SISTEMA --- 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://lhhasjzlsbmhaxhvaipw.supabase.co';
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoaGFzanpsc2JtaGF4aHZhaXB3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTA3NDAxMSwiZXhwIjoyMDgwNjUwMDExfQ.60tU_BnRACKcTXjAU9tdsR-DeBug9l5SZQivVGcu160';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Inicialização do Supabase movida para dentro do try/catch para debug mais preciso, se necessário
+// Por enquanto, mantemos aqui, mas o catch no listen já deve ser suficiente.
+const supabase = createClient(supabaseUrl, supabaseKey); 
 
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://cantinhodabere-evolution-api.3xdxtv.easypanel.host';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || '429683C4C977415CAAFCCE10F7D57E11';
@@ -190,7 +192,7 @@ async function baixarAudioWhatsApp(messageId) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Erro ao baixar mídia:', errorText);
+            console.error('❌ Erro ao baixar mídia:', response.status, errorText);
             return null;
         }
 
@@ -256,7 +258,7 @@ async function transcreverAudio(base64Audio, mimeType = 'audio/ogg') {
                         ultimoErro = new Error(`Quota excedida: ${modelo}`);
                         continue;
                     }
-                                
+                                        
                     ultimoErro = new Error(`HTTP ${response.status}: ${errorText}`);
                     continue;
                 }
@@ -366,66 +368,66 @@ ${horarioTexto}
 1. **NOME DO RESTAURANTE**: O nome é **${nomeRestaurante}**. Você deve se apresentar e se referir APENAS a este nome.
 
 2. **FLUXO DE CONVERSA - CRÍTICO**:
-   - Saudação APENAS na primeira mensagem
-   - NUNCA repita perguntas já respondidas
-   - Mantenha o contexto da conversa sempre
+    - Saudação APENAS na primeira mensagem
+    - NUNCA repita perguntas já respondidas
+    - Mantenha o contexto da conversa sempre
 
 3. **FINALIZAÇÃO DE PEDIDO - REGRA MAIS IMPORTANTE**:
-   🚨 ATENÇÃO MÁXIMA AQUI:
-   - Quando você mostrar o resumo do pedido com todos os dados (itens, endereço, nome, pagamento, total)
-   - E perguntar "Está tudo correto?" ou "Confirma o pedido?"
-   - Se o cliente responder: "SIM", "OK", "CONFIRMO", "ISSO", "CORRETO", "PODE FAZER", ou qualquer variação afirmativa
-   - Você DEVE IMEDIATAMENTE FINALIZAR O PEDIDO gerando o JSON
-   - NÃO pergunte novamente
-   - NÃO repita o resumo
-   - NÃO peça mais confirmações
-   - FINALIZE IMEDIATAMENTE COM O JSON
+    🚨 ATENÇÃO MÁXIMA AQUI:
+    - Quando você mostrar o resumo do pedido com todos os dados (itens, endereço, nome, pagamento, total)
+    - E perguntar "Está tudo correto?" ou "Confirma o pedido?"
+    - Se o cliente responder: "SIM", "OK", "CONFIRMO", "ISSO", "CORRETO", "PODE FAZER", ou qualquer variação afirmativa
+    - Você DEVE IMEDIATAMENTE FINALIZAR O PEDIDO gerando o JSON
+    - NÃO pergunte novamente
+    - NÃO repita o resumo
+    - NÃO peça mais confirmações
+    - FINALIZE IMEDIATAMENTE COM O JSON
 
 4. **TRATAMENTO DE CONTEXTO CURTO**:
-   - "Sim" ou "Não" se refere APENAS à sua última pergunta
-   - Se perguntou "Quer observação?" e cliente disse "Não", continue o pedido normalmente
-   - "Não" em observação NÃO cancela o pedido
+    - "Sim" ou "Não" se refere APENAS à sua última pergunta
+    - Se perguntou "Quer observação?" e cliente disse "Não", continue o pedido normalmente
+    - "Não" em observação NÃO cancela o pedido
 
 5. **FLUXO DE VENDA**:
-   - Seja amigável e educado
-   - Mostre o cardápio (sem IDs)
-   - Anote quantidade e observações
-   - Colete: Nome, Endereço completo, Forma de Pagamento
-   - Calcule o total (itens + taxa de R$ ${taxaEntrega})
-   - Mostre o resumo APENAS UMA VEZ
-   - Quando cliente confirmar, FINALIZE IMEDIATAMENTE
+    - Seja amigável e educado
+    - Mostre o cardápio (sem IDs)
+    - Anote quantidade e observações
+    - Colete: Nome, Endereço completo, Forma de Pagamento
+    - Calcule o total (itens + taxa de R$ ${taxaEntrega})
+    - Mostre o resumo APENAS UMA VEZ
+    - Quando cliente confirmar, FINALIZE IMEDIATAMENTE
 
 6. **FORMATO DE FINALIZAÇÃO**:
-   Quando o cliente confirmar o pedido, responda assim:
+    Quando o cliente confirmar o pedido, responda assim:
 
-   Excelente! Seu pedido foi confirmado com sucesso! 🎉
+    Excelente! Seu pedido foi confirmado com sucesso! 🎉
 
-   Pedido #[NUMERO_DO_PEDIDO]
+    Pedido #[NUMERO_DO_PEDIDO]
 
-   Resumo:
-   - Itens: [liste os itens]
-   - Total: R$ [valor]
-   - Endereço: [endereço]
-   - Pagamento: [forma]
+    Resumo:
+    - Itens: [liste os itens]
+    - Total: R$ [valor]
+    - Endereço: [endereço]
+    - Pagamento: [forma]
 
-   Seu pedido será entregue em aproximadamente ${tempoEntrega}.
-   Obrigado pela preferência! 😊
+    Seu pedido será entregue em aproximadamente ${tempoEntrega}.
+    Obrigado pela preferência! 😊
 
-   \`\`\`json
-   {
-       "action": "create_order",
-       "data": {
-           "customer_name": "Nome do Cliente",
-           "customer_phone": "${telefone}",
-           "delivery_address": "Endereço Completo",
-           "payment_method": "pix",
-           "items": [
-               { "product_id": "id-do-produto", "name": "Nome Produto", "quantity": 1, "price": 10.00, "notes": "" }
-           ],
-           "notes": "Observações gerais do pedido"
-       }
-   }
-   \`\`\`
+    \`\`\`json
+    {
+        "action": "create_order",
+        "data": {
+            "customer_name": "Nome do Cliente",
+            "customer_phone": "${telefone}",
+            "delivery_address": "Endereço Completo",
+            "payment_method": "pix",
+            "items": [
+                { "product_id": "id-do-produto", "name": "Nome Produto", "quantity": 1, "price": 10.00, "notes": "" }
+            ],
+            "notes": "Observações gerais do pedido"
+        }
+    }
+    \`\`\`
 
 ${instrucoesAdicionais ? `\n## 📝 INSTRUÇÕES ADICIONAIS:\n${instrucoesAdicionais}\n` : ''}
 
@@ -670,11 +672,14 @@ function extrairDadosPedido(respostaIA) {
     }
 }
 
-app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webhook/messages-upsert'], async (req, res) => {
+app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webhook/messages-upsert', '/webhook'], async (req, res) => {
     try {
         console.log('\n📱 ====================================');
         console.log('📱 WEBHOOK RECEBIDO DA EVOLUTION');
         console.log('📱 ====================================');
+        
+        // Retorna 200 imediatamente para a Evolution não tentar de novo
+        res.status(200).json({ success: true, message: 'Webhook received and processing' });
 
         const { event, data } = req.body;
 
@@ -689,7 +694,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
 
                 if (remoteJid.endsWith('@g.us')) {
                     console.log('🤖 Mensagem de grupo ignorada.');
-                    return res.status(200).json({ success: true, message: 'Ignored group message' });
+                    return; 
                 }
 
                 phone = remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '').trim();
@@ -707,7 +712,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                 
                 if (!phone || phone.length < 10) {
                     console.error('❌ Número de telefone inválido ou ausente após tratamento:', phone);
-                    return res.status(200).json({ success: true, message: 'Invalid phone number' });
+                    return;
                 }
 
                 let messageText = null;
@@ -745,7 +750,6 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
 
                 if (!config) {
                     console.error('❌ Configurações do restaurante não encontradas');
-                    res.status(200).json({ success: false, error: 'Configurações não encontradas' });
                     
                     const fallbackError = 'Olá! Recebemos sua mensagem, mas nosso sistema de pedidos está temporariamente fora do ar. Por favor, tente novamente em alguns minutos!';
                     await enviarMensagemWhatsApp(jidParaEnvio, fallbackError); 
@@ -815,7 +819,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                     await logBotMessage(conversation.id, phone, responseText);
                     
                     console.log(`🛠️ Entrou no modo ${COMMAND_RESET}. Aguardando senha.`);
-                    return res.status(200).json({ success: true, message: 'Waiting for password' });
+                    return;
                 }
 
                 if (currentInternalState === STATE_WAITING_PASS) {
@@ -827,7 +831,7 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         await logBotMessage(conversation.id, phone, responseText);
                         
                         console.log(`✅ Senha correta. Conversa de ${phone} reiniciada.`);
-                        return res.status(200).json({ success: true, message: 'Conversation reset' });
+                        return;
                     } else {
                         await supabase
                             .from('whatsapp_conversations')
@@ -839,90 +843,101 @@ app.post(['/api/whatsapp-webhook', '/api/webhook/messages', '/api/whatsapp-webho
                         await logBotMessage(conversation.id, phone, responseText);
                         
                         console.log(`❌ Senha incorreta. Retornando ao modo IDLE.`);
-                        return res.status(200).json({ success: true, message: 'Password failed' });
+                        return;
                     }
                 }
-
-                if (conversation.is_bot_paused) {
-                    console.log('⏸️ Bot pausado para esta conversa');
-                    res.status(200).json({ success: true, message: 'Bot pausado' });
+                
+                // Se o bot estiver pausado ou desativado
+                if (!config.is_bot_active || conversation.is_bot_paused) {
+                    console.log(`⏸️ Bot pausado ou inativo. Ignorando mensagem de ${phone}.`);
                     return;
                 }
 
-                if (!verificarHorarioFuncionamento(config.opening_hours)) {
-                    const horarioTexto = config.opening_hours
-                        .filter(h => h.is_open)
-                        .map(h => `${h.day}: ${h.open_time} às ${h.close_time}`)
-                        .join('\n');
-                    const mensagemFechado = `Olá! 👋\n\nObrigado por entrar em contato com ${config.name}!\n\n🕐 No momento estamos fechados.\n\nNosso horário de funcionamento:\n${horarioTexto}\n\nVolte nesse horário que ficaremos felizes em atendê-lo! 😊`;
-                    await enviarMensagemWhatsApp(jidParaEnvio, mensagemFechado); 
-                    await logBotMessage(conversation.id, phone, mensagemFechado); 
-                    return res.status(200).json({ success: true, message: 'Fora do horário de funcionamento' });
+                // Verifica horário de funcionamento
+                const estaAberto = verificarHorarioFuncionamento(config.opening_hours);
+                if (!estaAberto) {
+                    console.log(`⏰ Fora do horário de funcionamento. Informando cliente ${phone}.`);
+                    const fechadoMsg = `Olá! 🌙 Somos o ${config.name || 'Mandavenovo'} e no momento estamos fechados. Nosso horário de funcionamento é:\n\n${config.opening_hours.map(h => `${h.day}: ${h.is_open ? `${h.open_time} às ${h.close_time}` : 'FECHADO'}`).join('\n')}\n\nAguardamos seu pedido no nosso horário! 😊`;
+                    await enviarMensagemWhatsApp(jidParaEnvio, fechadoMsg); 
+                    await logBotMessage(conversation.id, phone, fechadoMsg);
+                    return;
                 }
 
-                let respostaIA = await gerarRespostaIA(messageText, phone, config);
+                // Processamento da Mensagem (IA)
+                const respostaIA = await gerarRespostaIA(messageText, phone, config);
 
                 if (respostaIA) {
                     const dadosPedido = extrairDadosPedido(respostaIA);
-                    let textoResposta = respostaIA.replace(/```json[\s\S]*?```/, '').trim(); 
-                    let pedidoCriado = false;
+                    let responseText;
 
                     if (dadosPedido) {
-                        const pedidoId = await criarPedido(phone, dadosPedido);
+                        // A IA solicitou a criação de um pedido
+                        
+                        // 1. Extrai a mensagem de confirmação do pedido (a parte de texto antes ou depois do JSON)
+                        const jsonStartIndex = respostaIA.indexOf('```json');
+                        const textBeforeJson = jsonStartIndex > -1 ? respostaIA.substring(0, jsonStartIndex) : respostaIA;
+                        
+                        // Usa a parte de texto sem o JSON para a resposta ao cliente
+                        responseText = textBeforeJson || "Seu pedido foi finalizado com sucesso!"; // Fallback
 
-                        if (pedidoId) {
-                            pedidoCriado = true;
-                            console.log(`🔄 Substituindo [NUMERO_DO_PEDIDO] por ${pedidoId}`);
+                        // 2. Cria o pedido no Supabase
+                        const orderId = await criarPedido(phone, dadosPedido);
+
+                        if (orderId) {
+                            console.log(`✅ Pedido #${orderId} criado. Definindo estado para ORDER_CREATED.`);
                             
-                            textoResposta = textoResposta.replace(/\[NUMERO_DO_PEDIDO\]/g, `${pedidoId}`);
-                            
-                            console.log('\n🎊 ================================');
-                            console.log(`🎉 PEDIDO #${pedidoId} CONFIRMADO!`);
-                            console.log(`📱 Cliente: ${dadosPedido.customer_name} (${phone})`);
-                            console.log(`📍 Endereço: ${dadosPedido.delivery_address}`);
-                            console.log(`💰 Valor Total: R$ ${dadosPedido.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}`);
-                            console.log('🎊 ================================\n');
-                        } else {
-                            console.error('❌ Falha ao criar pedido no banco. Mantendo mensagem original da IA.');
-                            textoResposta = textoResposta.replace(/\[NUMERO_DO_PEDIDO\]/g, 'em processamento');
-                        }
-
-                        await enviarMensagemWhatsApp(jidParaEnvio, textoResposta); 
-                        await logBotMessage(conversation.id, phone, textoResposta);
-
-                        if (pedidoCriado) {
+                            // Atualiza o status da conversa para finalizado
                             await supabase
                                 .from('whatsapp_conversations')
                                 .update({ internal_state: STATE_ORDER_CREATED })
                                 .eq('id', conversation.id);
+                        } else {
+                            responseText = "⚠️ Recebi seu pedido, mas houve um erro ao finalizá-lo em nosso sistema. Por favor, tente novamente ou ligue para nós.";
+                            console.error('❌ Falha ao criar pedido no Supabase.');
                         }
                     } else {
-                        await enviarMensagemWhatsApp(jidParaEnvio, textoResposta); 
-                        await logBotMessage(conversation.id, phone, textoResposta);
+                        // A IA gerou uma resposta de texto normal (continuação da conversa)
+                        responseText = respostaIA;
                     }
+
+                    // 3. Envia a resposta de volta ao cliente
+                    await enviarMensagemWhatsApp(jidParaEnvio, responseText);
+                    await logBotMessage(conversation.id, phone, responseText);
                 }
 
-                res.status(200).json({ success: true, message: 'Message processed' });
-                
-            } else {
-                res.status(200).json({ success: true, message: 'Ignored message' });
+                return;
             }
-        } else if (event === 'connection.update') {
-            console.log(`📡 Status da Evolution: ${data.state}`);
-            res.status(200).json({ success: true, message: 'Status update received' });
-        } else {
-            res.status(200).json({ success: true, message: 'Ignored event' });
         }
+
+        // Se o evento não for messages.upsert (ex: status, connection, etc), apenas loga
+        console.log(`🔔 Evento não processado: ${event}`);
+        return;
+
     } catch (error) {
-        console.error('❌ Erro inesperado no webhook:', error);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
+        console.error('❌ Erro no webhook principal:', error);
+        // O res.status(200) já foi enviado no início.
+        return;
     }
 });
 
-app.listen(3002, () => {
-    console.log('🚀 ===================================');
-    console.log('🤖 Backend Mandavenovo ONLINE!');
-    console.log('🌐 Porta: 3002');
-    console.log('📱 Aguardando webhooks da Evolution API');
-    console.log('🚀 ===================================\n');
-});
+
+// Este é o bloco de inicialização que falhou com SIGTERM anteriormente
+const PORT = process.env.PORT || 3002;
+
+try {
+    app.listen(PORT, () => {
+        // Log de sucesso de inicialização
+        console.log(`\n===================================`);
+        console.log(`🤖 Backend Mandavenovo ONLINE!`);
+        console.log(`🌐 Porta: ${PORT}`);
+        console.log(`📱 Aguardando webhooks da Evolution API`);
+        console.log(`🚀 ===================================`);
+    });
+} catch (error) {
+    // Bloco de captura de erro na inicialização do Express
+    console.error('❌ ERRO FATAL AO INICIAR O SERVIDOR:', error.message);
+    // Adicionamos um pequeno delay para garantir que o log seja escrito antes do processo cair
+    setTimeout(() => {
+        process.exit(1); // Encerra o processo para que o EasyPanel pegue o log
+    }, 1000); 
+}
