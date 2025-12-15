@@ -9,15 +9,14 @@ const app = express();
 // --- CONFIGURAÇÕES DO SISTEMA --- 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://lhhasjzlsbmhaxhvaipw.supabase.co';
 const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoaGFzanpsc2JtaGF4aHZhaXB3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTA3NDAxMSwiZXhwIjoyMDgwNjUwMDExfQ.60tU_BnRACKcTXjAU9tdsR-DeBug9l5SZQivVGcu160';
-// Inicialização do Supabase movida para dentro do try/catch para debug mais preciso, se necessário
-// Por enquanto, mantemos aqui, mas o catch no listen já deve ser suficiente.
 const supabase = createClient(supabaseUrl, supabaseKey); 
 
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://cantinhodabere-evolution-api.3xdxtv.easypanel.host';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || '429683C4C977415CAAFCCE10F7D57E11';
 const INSTANCE_NAME = process.env.INSTANCE_NAME || 'testa';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBU_-SIdVKXPuRgrW65zBsHZ-MHVYCykb8'; 
+// ✅ GEMINI - AGORA SEM CHAVE HARDCODED
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const RESTAURANT_ID = process.env.RESTAURANT_ID || '00000000-0000-0000-0000-000000000001';
 
 const COMMAND_RESET = '#NEYREVISAO'; 
