@@ -2,7 +2,7 @@
 
 const EVOLUTION_API_URL = 'https://cantinhodabere-evolution-api.3xdxtv.easypanel.host';
 const API_KEY = '429683C4C977415CAAFCCE10F7D57E11';
-const INSTANCE_NAME = 'testa';
+const INSTANCE_NAME = 'Cantinhodaberev1';
 
 interface EvolutionResponse {
   instance?: {
